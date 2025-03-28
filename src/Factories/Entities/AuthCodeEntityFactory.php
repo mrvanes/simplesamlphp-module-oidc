@@ -31,6 +31,7 @@ class AuthCodeEntityFactory
         ?string $redirectUri = null,
         ?string $nonce = null,
         bool $isRevoked = false,
+        ?string $issuer_state = null,
     ): AuthCodeEntity {
         return new AuthCodeEntity(
             $id,
@@ -41,6 +42,7 @@ class AuthCodeEntityFactory
             $redirectUri,
             $nonce,
             $isRevoked,
+            $issuer_state,
         );
     }
 
@@ -81,6 +83,7 @@ class AuthCodeEntityFactory
         $redirectUri = empty($state['redirect_uri']) ? null : (string)$state['redirect_uri'];
         $nonce = empty($state['nonce']) ? null : (string)$state['nonce'];
         $isRevoked = (bool) $state['is_revoked'];
+        $issuerState = (string) $state['issuer_state'];
 
         return $this->fromData(
             $id,
@@ -91,6 +94,7 @@ class AuthCodeEntityFactory
             $redirectUri,
             $nonce,
             $isRevoked,
+            $issuerState,
         );
     }
 }

@@ -101,8 +101,8 @@ class AccessTokenRepository extends AbstractDatabaseRepository implements Access
         }
 
         $stmt = sprintf(
-            "INSERT INTO %s (id, scopes, expires_at, user_id, client_id, is_revoked, auth_code_id, requested_claims) "
-            . "VALUES (:id, :scopes, :expires_at, :user_id, :client_id, :is_revoked, :auth_code_id, :requested_claims)",
+            "INSERT INTO %s (id, scopes, expires_at, user_id, client_id, is_revoked, auth_code_id, requested_claims, issuer_state) "
+            . "VALUES (:id, :scopes, :expires_at, :user_id, :client_id, :is_revoked, :auth_code_id, :requested_claims, :issuer_state)",
             $this->getTableName(),
         );
 
@@ -239,7 +239,7 @@ class AccessTokenRepository extends AbstractDatabaseRepository implements Access
         $stmt = sprintf(
             "UPDATE %s SET scopes = :scopes, expires_at = :expires_at, user_id = :user_id, "
                 . "client_id = :client_id, is_revoked = :is_revoked, auth_code_id = :auth_code_id, "
-                . "requested_claims = :requested_claims WHERE id = :id",
+                . "requested_claims = :requested_claims, issuer_state = :issuer_state WHERE id = :id",
             $this->getTableName(),
         );
 

@@ -44,6 +44,11 @@ class AuthorizationRequest extends OAuth2AuthorizationRequest
      */
     protected ?string $sessionId = null;
 
+    /**
+     * Issuer State
+     */
+    protected ?string $issuerState = null;
+
     public static function fromOAuth2AuthorizationRequest(
         OAuth2AuthorizationRequest $oAuth2authorizationRequest,
     ): AuthorizationRequest {
@@ -204,4 +209,21 @@ class AuthorizationRequest extends OAuth2AuthorizationRequest
     {
         $this->sessionId = $sessionId;
     }
+
+    /**
+     * @return string|null
+     */
+    public function getIssuerState(): ?string
+    {
+        return $this->issuerState;
+    }
+
+    /**
+     * @param string|null $sessionId
+     */
+    public function setIssuerState(?string $issuerState): void
+    {
+        $this->issuerState = $issuerState;
+    }
+
 }

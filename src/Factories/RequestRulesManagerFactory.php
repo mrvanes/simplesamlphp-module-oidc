@@ -32,6 +32,7 @@ use SimpleSAML\Module\oidc\Server\RequestRules\Rules\ResponseTypeRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\ScopeOfflineAccessRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\ScopeRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\StateRule;
+use SimpleSAML\Module\oidc\Server\RequestRules\Rules\IssuerStateRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\UiLocalesRule;
 use SimpleSAML\Module\oidc\Services\AuthenticationService;
 use SimpleSAML\Module\oidc\Services\LoggerService;
@@ -84,6 +85,7 @@ class RequestRulesManagerFactory
     {
         return [
             new StateRule($this->requestParamsResolver, $this->helpers),
+            new IssuerStateRule($this->requestParamsResolver, $this->helpers),
             new ClientIdRule(
                 $this->requestParamsResolver,
                 $this->helpers,

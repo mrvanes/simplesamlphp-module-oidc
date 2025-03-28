@@ -50,6 +50,7 @@ trait IssueAccessTokenTrait
         array $scopes = [],
         ?string $authCodeId = null,
         ?array $requestedClaims = null,
+        ?string $issuerState = null,
     ): AccessTokenEntityInterface {
         $maxGenerationAttempts = AbstractGrant::MAX_RANDOM_TOKEN_GENERATION_ATTEMPTS;
 
@@ -70,6 +71,8 @@ trait IssueAccessTokenTrait
                     $userIdentifier,
                     $authCodeId,
                     $requestedClaims,
+                    false,
+                    $issuerState,
                 );
                 $this->accessTokenRepository->persistNewAccessToken($accessToken);
                 return $accessToken;

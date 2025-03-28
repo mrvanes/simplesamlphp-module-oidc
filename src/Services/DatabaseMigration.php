@@ -163,6 +163,16 @@ class DatabaseMigration
             $this->version20240906120000();
             $this->database->write("INSERT INTO $versionsTablename (version) VALUES ('20240906120000')");
         }
+
+        if (!in_array('20250327150000', $versions, true)) {
+            $this->version20250327150000();
+            $this->database->write("INSERT INTO $versionsTablename (version) VALUES ('20250327150000')");
+        }
+
+        if (!in_array('20250328090000', $versions, true)) {
+            $this->version20250328090000();
+            $this->database->write("INSERT INTO $versionsTablename (version) VALUES ('20250328090000')");
+        }
     }
 
     private function versionsTableName(): string
@@ -529,6 +539,26 @@ EOT
             ADD is_federated BOOLEAN NOT NULL DEFAULT false
 EOT
             ,);
+    }
+
+    private function version20250327150000(): void
+    {
+        $clientTableName = $this->database->applyPrefix(AuthCodeRepository::TABLE_NAME);
+        $this->database->write(<<< EOT
+        ALTER TABLE {$clientTableName}
+            ADD issuer_state TEXT NULL
+EOT
+        ,);
+    }
+
+    private function version20250328090000(): void
+    {
+        $clientTableName = $this->database->applyPrefix(AccessTokenRepository::TABLE_NAME);
+        $this->database->write(<<< EOT
+        ALTER TABLE {$clientTableName}
+            ADD issuer_state TEXT NULL
+EOT
+        ,);
     }
 
     /**

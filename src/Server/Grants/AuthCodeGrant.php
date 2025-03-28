@@ -53,6 +53,7 @@ use SimpleSAML\Module\oidc\Server\RequestRules\Rules\RequiredOpenIdScopeRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\ScopeOfflineAccessRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\ScopeRule;
 use SimpleSAML\Module\oidc\Server\RequestRules\Rules\StateRule;
+use SimpleSAML\Module\oidc\Server\RequestRules\Rules\IssuerStateRule;
 use SimpleSAML\Module\oidc\Server\RequestTypes\AuthorizationRequest;
 use SimpleSAML\Module\oidc\Server\ResponseTypes\Interfaces\AcrResponseTypeInterface;
 use SimpleSAML\Module\oidc\Server\ResponseTypes\Interfaces\AuthTimeResponseTypeInterface;
@@ -269,6 +270,7 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
             $finalRedirectUri,
             $authorizationRequest->getScopes(),
             $authorizationRequest->getNonce(),
+            $authorizationRequest->getIssuerState(),
         );
 
         $payload = [
@@ -315,6 +317,7 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
         string $redirectUri,
         array $scopes = [],
         ?string $nonce = null,
+        ?string $issuer_state = null,
     ): AuthCodeEntityInterface {
         $maxGenerationAttempts = self::MAX_RANDOM_TOKEN_GENERATION_ATTEMPTS;
 
@@ -332,6 +335,8 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
                     $userIdentifier,
                     $redirectUri,
                     $nonce,
+                    false,
+                    $issuer_state,
                 );
                 $this->authCodeRepository->persistNewAuthCode($authCode);
 
@@ -450,6 +455,7 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
                 $client,
                 $authCodePayload->user_id,
             );
+
         } catch (LogicException $e) {
             throw OAuthServerException::invalidRequest('code', 'Cannot decrypt the authorization code', $e);
         }
@@ -508,6 +514,12 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
         json_decode(json_encode($authCodePayload->claims, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR)
         : null;
 
+        $auth_code_id = $authCodePayload->auth_code_id;
+        $authCodeEntity = $this->authCodeRepository->findById($auth_code_id);
+
+        /** @var string $issuerState */
+        $issuerState = $authCodeEntity->issuerState ?: null;
+
         // Issue and persist new access token
         $accessToken = $this->issueAccessToken(
             $accessTokenTTL,
@@ -516,6 +528,7 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
             $scopes,
             $authCodePayload->auth_code_id,
             $claims,
+            $issuerState,
         );
         $this->getEmitter()->emit(new RequestEvent(RequestEvent::ACCESS_TOKEN_ISSUED, $request));
         $responseType->setAccessToken($accessToken);
@@ -665,6 +678,8 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
         $redirectUri = $resultBag->getOrFail(RedirectUriRule::class)->getValue();
         /** @var string|null $state */
         $state = $resultBag->getOrFail(StateRule::class)->getValue();
+        /** @var string|null $issuer_state */
+        $issuer_state = $resultBag->getOrFail(IssuerStateRule::class)->getValue();
         /** @var \SimpleSAML\Module\oidc\Entities\Interfaces\ClientEntityInterface $client */
         $client = $resultBag->getOrFail(ClientIdRule::class)->getValue();
 
@@ -730,6 +745,10 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
             if (is_array($requestClaimValues)) {
                 $authorizationRequest->setClaims($requestClaimValues);
             }
+        }
+
+        if ($issuer_state !== null) {
+            $authorizationRequest->setIssuerState($issuer_state);
         }
 
         /** @var array|null $acrValues */

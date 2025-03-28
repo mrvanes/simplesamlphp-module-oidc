@@ -31,6 +31,8 @@ class AuthCodeEntity implements AuthCodeEntityInterface, MementoInterface
     use OidcAuthCodeTrait;
     use RevokeTokenTrait;
 
+    public ?string $issuerState = null;
+
     /**
      * @param \League\OAuth2\Server\Entities\ScopeEntityInterface[] $scopes
      */
@@ -43,6 +45,7 @@ class AuthCodeEntity implements AuthCodeEntityInterface, MementoInterface
         ?string $redirectUri = null,
         ?string $nonce = null,
         bool $isRevoked = false,
+        ?string $issuer_state = null,
     ) {
         $this->identifier = $id;
         $this->client = $client;
@@ -52,6 +55,7 @@ class AuthCodeEntity implements AuthCodeEntityInterface, MementoInterface
         $this->redirectUri = $redirectUri;
         $this->nonce = $nonce;
         $this->isRevoked = $isRevoked;
+        $this->issuerState = $issuer_state;
     }
 
     /**
@@ -68,6 +72,7 @@ class AuthCodeEntity implements AuthCodeEntityInterface, MementoInterface
             'is_revoked' => $this->isRevoked(),
             'redirect_uri' => $this->getRedirectUri(),
             'nonce' => $this->getNonce(),
+            'issuer_state' => $this->issuerState,
         ];
     }
 }

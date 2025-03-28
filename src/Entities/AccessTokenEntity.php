@@ -55,6 +55,12 @@ class AccessTokenEntity implements AccessTokenEntityInterface, EntityStringRepre
     protected array $requestedClaims;
 
     /**
+     * issuer state
+     * @var string $issuerState
+     */
+    protected ?string $issuerState = null;
+
+    /**
      * @param \League\OAuth2\Server\Entities\ScopeEntityInterface[] $scopes
      */
     public function __construct(
@@ -69,6 +75,7 @@ class AccessTokenEntity implements AccessTokenEntityInterface, EntityStringRepre
         ?array $requestedClaims = null,
         ?bool $isRevoked = false,
         ?Configuration $jwtConfiguration = null,
+        ?string $issuerState = null,
     ) {
         $this->setIdentifier($id);
         $this->setClient($clientEntity);
@@ -84,6 +91,7 @@ class AccessTokenEntity implements AccessTokenEntityInterface, EntityStringRepre
             $this->revoke();
         }
         $jwtConfiguration !== null ? $this->jwtConfiguration = $jwtConfiguration : $this->initJwtConfiguration();
+        $this->issuerState = $issuerState;
     }
 
     /**
@@ -114,6 +122,7 @@ class AccessTokenEntity implements AccessTokenEntityInterface, EntityStringRepre
             'is_revoked' => $this->isRevoked(),
             'auth_code_id' => $this->getAuthCodeId(),
             'requested_claims' => json_encode($this->requestedClaims, JSON_THROW_ON_ERROR),
+            'issuer_state' => $this->issuerState,
         ];
     }
 
@@ -155,6 +164,9 @@ class AccessTokenEntity implements AccessTokenEntityInterface, EntityStringRepre
             ->expiresAt($this->getExpiryDateTime())
             ->relatedTo((string) $this->getUserIdentifier())
             ->withClaim('scopes', $this->getScopes());
+        if ($this->issuerState !== null) {
+            $jwtBuilder = $jwtBuilder->withClaim('issuer_state', $this->issuerState);
+        }
 
         return $this->jsonWebTokenBuilderService->getSignedProtocolJwt($jwtBuilder);
     }

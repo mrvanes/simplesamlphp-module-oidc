@@ -35,6 +35,7 @@ class AccessTokenEntityFactory
         ?string $authCodeId = null,
         ?array $requestedClaims = null,
         ?bool $isRevoked = false,
+        ?string $issuerState = null,
     ): AccessTokenEntity {
         return new AccessTokenEntity(
             $id,
@@ -47,6 +48,8 @@ class AccessTokenEntityFactory
             $authCodeId,
             $requestedClaims,
             $isRevoked,
+            null,
+            $issuerState,
         );
     }
 
