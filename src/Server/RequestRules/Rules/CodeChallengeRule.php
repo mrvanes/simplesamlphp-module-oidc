@@ -41,16 +41,16 @@ class CodeChallengeRule extends AbstractRule
         );
 
         if ($codeChallenge === null) {
-            if (! $client->isConfidential()) {
-                throw OidcServerException::invalidRequest(
-                    ParamsEnum::CodeChallenge->value,
-                    'Code Challenge must be provided for public clients.',
-                    null,
-                    $redirectUri,
-                    $state,
-                    $useFragmentInHttpErrorResponses,
-                );
-            }
+            // if (!$client->isConfidential()) {
+            //     throw OidcServerException::invalidRequest(
+            //         ParamsEnum::CodeChallenge->value,
+            //         'Code Challenge must be provided for public clients.',
+            //         null,
+            //         $redirectUri,
+            //         $state,
+            //         $useFragmentInHttpErrorResponses,
+            //     );
+            // }
 
             return new Result($this->getKey(), null);
         }

@@ -36,12 +36,12 @@ class CodeVerifierRule extends AbstractRule
         );
 
         if (is_null($codeVerifier)) {
-            if (!$client->isConfidential()) {
-                throw OidcServerException::invalidRequest(
-                    'code_verifier',
-                    'Code Verifier must be provided for public clients.',
-                );
-            }
+            // if (!$client->isConfidential()) {
+            //     throw OidcServerException::invalidRequest(
+            //         'code_verifier',
+            //         'Code Verifier must be provided for public clients.',
+            //     );
+            // }
 
             return new Result($this->getKey(), null);
         }

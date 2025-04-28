@@ -421,9 +421,9 @@ class AuthCodeGrant extends OAuth2AuthCodeGrant implements
             $utilizedClientAuthenticationParams[] = ParamsEnum::CodeVerifier->value;
         }
 
-        if (empty($utilizedClientAuthenticationParams)) {
-            throw OidcServerException::accessDenied('Client authentication not performed.');
-        }
+        // if (empty($utilizedClientAuthenticationParams)) {
+        //     throw OidcServerException::accessDenied('Client authentication not performed.');
+        // }
 
         // OAuth2 implementation
         //$client = $this->getClientEntityOrFail((string)$clientId, $request);
