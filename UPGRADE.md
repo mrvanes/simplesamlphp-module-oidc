@@ -15,6 +15,7 @@ be fetched by RPs, and do the switch between "old" and "new" key pair when you f
   - Federation participation limiting based on Trust Marks
   - Endpoint for issuing configuration entity statement (statement about itself)
   - Fetch endpoint for issuing statements about subordinates (registered clients)
+  - (from v6.1) Subordinate listing endpoint
   - Clients can now be configured with new properties:
     - Entity Identifier
     - Supported OpenID Federation Registration Types
@@ -35,7 +36,8 @@ https://openid.net/specs/openid-connect-core-1_0.html#RequestObject
 https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 
 ## New configuration options
-
+- (from v6.1) Show `claims_supported` claim in OP Discovery endpoint - you can now choose to show supported claims,
+as is recommended by OpenID Connect Discovery specification https://openid.net/specs/openid-connect-discovery-1_0.html.
 - (optional) Issuer - you can now override the issuer (OP identifier). If not set, it falls back to current scheme, host
 and optionally a port (as in all previous module versions).
 - (optional) Protocol caching adapter and its arguments
@@ -46,6 +48,7 @@ and optionally a port (as in all previous module versions).
   - federation caching adapter and its arguments
   - PKI keys - federation keys used for example to sign federation entity statements
   - federation participation limiting based on Trust Marks for RPs
+  - (from v6.1) own Trust Marks to dynamically fetch
   - signer algorithm
   - entity statement duration
   - organization name

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Module\oidc\Controllers\Federation;
 
-use SimpleSAML\Module\oidc\Codebooks\RoutesEnum;
 use SimpleSAML\Module\oidc\Helpers;
 use SimpleSAML\Module\oidc\ModuleConfig;
 use SimpleSAML\Module\oidc\Repositories\ClientRepository;
 use SimpleSAML\Module\oidc\Server\Exceptions\OidcServerException;
 use SimpleSAML\Module\oidc\Services\JsonWebKeySetService;
 use SimpleSAML\Module\oidc\Services\JsonWebTokenBuilderService;
+use SimpleSAML\Module\oidc\Services\LoggerService;
 use SimpleSAML\Module\oidc\Services\OpMetadataService;
 use SimpleSAML\Module\oidc\Utils\FederationCache;
 use SimpleSAML\Module\oidc\Utils\Routes;
@@ -42,6 +42,7 @@ class EntityStatementController
         private readonly Helpers $helpers,
         private readonly Routes $routes,
         private readonly Federation $federation,
+        private readonly LoggerService $loggerService,
         private readonly ?FederationCache $federationCache,
     ) {
         if (!$this->moduleConfig->getFederationEnabled()) {
@@ -93,11 +94,10 @@ class EntityStatementController
                                 ClaimsEnum::HomepageUri->value => $this->moduleConfig->getHomepageUri(),
                             ],
                         )),
-                        ClaimsEnum::FederationFetchEndpoint->value =>
-                            $this->moduleConfig->getModuleUrl(RoutesEnum::FederationFetch->value),
+                        ClaimsEnum::FederationFetchEndpoint->value => $this->routes->urlFederationFetch(),
+                        ClaimsEnum::FederationListEndpoint->value => $this->routes->urlFederationList(),
                         // TODO v7 mivanci Add when ready. Use ClaimsEnum for keys.
                         // https://openid.net/specs/openid-federation-1_0.html#name-federation-entity
-                        //'federation_list_endpoint',
                         //'federation_resolve_endpoint',
                         //'federation_trust_mark_status_endpoint',
                         //'federation_trust_mark_list_endpoint',
@@ -126,6 +126,8 @@ class EntityStatementController
             $builder = $builder->withClaim(ClaimsEnum::AuthorityHints->value, $authorityHints);
         }
 
+        $trustMarks = [];
+
         if (
             is_array($trustMarkTokens = $this->moduleConfig->getFederationTrustMarkTokens()) &&
             (!empty($trustMarkTokens))
@@ -145,7 +147,45 @@ class EntityStatementController
                     ClaimsEnum::TrustMark->value => $token,
                 ];
             }, $trustMarkTokens);
+        }
 
+        if (
+            is_array($dynamicTrustMarks = $this->moduleConfig->getFederationDynamicTrustMarks()) &&
+            (!empty($dynamicTrustMarks))
+        ) {
+            /**
+             * @var non-empty-string $trustMarkId
+             * @var non-empty-string $trustMarkIssuerId
+             */
+            foreach ($dynamicTrustMarks as $trustMarkId => $trustMarkIssuerId) {
+                try {
+                    $trustMarkIssuerConfigurationStatement = $this->federation->entityStatementFetcher()
+                        ->fromCacheOrWellKnownEndpoint($trustMarkIssuerId);
+
+                    $trustMarkEntity = $this->federation->trustMarkFetcher()->fromCacheOrFederationTrustMarkEndpoint(
+                        $trustMarkId,
+                        $this->moduleConfig->getIssuer(),
+                        $trustMarkIssuerConfigurationStatement,
+                    );
+
+                    $trustMarks[] = [
+                        ClaimsEnum::TrustMarkId->value => $trustMarkId,
+                        ClaimsEnum::TrustMark->value => $trustMarkEntity->getToken(),
+                    ];
+                } catch (\Throwable $exception) {
+                    $this->loggerService->error(
+                        'Error fetching Trust Mark: ' . $exception->getMessage(),
+                        [
+                            'trustMarkId' => $trustMarkId,
+                            'subjectId' => $this->moduleConfig->getIssuer(),
+                            'trustMarkIssuerId' => $trustMarkIssuerId,
+                        ],
+                    );
+                }
+            }
+        }
+
+        if (!empty($trustMarks)) {
             $builder = $builder->withClaim(ClaimsEnum::TrustMarks->value, $trustMarks);
         }
 
@@ -169,7 +209,7 @@ class EntityStatementController
 
     public function fetch(Request $request): Response
     {
-        $subject = $request->query->get(ClaimsEnum::Sub->value);
+        $subject = $request->query->getString(ClaimsEnum::Sub->value);
 
         if (empty($subject)) {
             return $this->routes->newJsonErrorResponse(
@@ -180,7 +220,6 @@ class EntityStatementController
         }
 
         /** @var non-empty-string $subject */
-        $subject = (string)$subject;
 
         $cachedSubordinateStatement = $this->federationCache?->get(
             null,
@@ -192,7 +231,7 @@ class EntityStatementController
             return $this->prepareEntityStatementResponse((string)$cachedSubordinateStatement);
         }
 
-        $client = $this->clientRepository->findByEntityIdentifier($subject);
+        $client = $this->clientRepository->findFederatedByEntityIdentifier($subject);
         if (empty($client)) {
             return $this->routes->newJsonErrorResponse(
                 ErrorsEnum::NotFound->value,

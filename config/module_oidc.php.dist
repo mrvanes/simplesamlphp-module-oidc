@@ -78,7 +78,8 @@ $config = [
     // to use this attribute as the 'sub' claim since it designates unique identifier for the user).
     ModuleConfig::OPTION_AUTH_USER_IDENTIFIER_ATTRIBUTE => 'uid',
 
-    // The default translate table from SAML attributes to OIDC claims.
+    // The default translate table from SAML attributes to OIDC claims. If you don't want to support specific default
+    // claim, set it to an empty array.
     ModuleConfig::OPTION_AUTH_SAML_TO_OIDC_TRANSLATE_TABLE => [
         /*
          * The basic format is
@@ -243,6 +244,11 @@ $config = [
 //     ModuleConfig::OPTION_AUTH_FORCED_ACR_VALUE_FOR_COOKIE_AUTHENTICATION => '0',
     ModuleConfig::OPTION_AUTH_FORCED_ACR_VALUE_FOR_COOKIE_AUTHENTICATION => null,
 
+    // Choose if OP discovery document will include 'claims_supported' claim, which is recommended per OpenID Connect
+    // Discovery specification https://openid.net/specs/openid-connect-discovery-1_0.html. The list will include all
+    // claims for which "SAML attribute to OIDC claim translation" has been defined above.
+    ModuleConfig::OPTION_PROTOCOL_DISCOVERY_SHOW_CLAIMS_SUPPORTED => false,
+
     // Settings regarding Authentication Processing Filters.
     // Note: OIDC authN state array will not contain all the keys which are available during SAML authN,
     // like Service Provider metadata, etc.
@@ -363,9 +369,18 @@ $config = [
     ],
 
     // (optional) Federation Trust Mark tokens. An array of tokens (signed JWTs), each representing a Trust Mark
-    // issued to this entity.
+    // issued to this entity. This option is primarily intended for long-lasting or non-expiring tokens, so it
+    // is not necessary to dynamically fetch / refresh them.
     ModuleConfig::OPTION_FEDERATION_TRUST_MARK_TOKENS => [
 //        'eyJ...GHg',
+    ],
+
+    // (optional) Federation Trust Marks for dynamic fetching. An array of key-value pairs, where key is Trust Mark ID
+    // and value is Trust Mark Issuer ID, each representing a Trust Mark issued to this entity. Each Trust Mark ID
+    // in this array will be dynamically fetched from noted Trust Mark Issuer as necessary. If federation caching
+    // is enabled (recommended), fetched Trust Marks will also be cached until their expiry.
+    ModuleConfig::OPTION_FEDERATION_DYNAMIC_TRUST_MARKS => [
+//        'trust-mark-id' => 'trust-mark-issuer-id',
     ],
 
     // (optional) Federation participation limit by Trust Marks. This is an array with the following format:

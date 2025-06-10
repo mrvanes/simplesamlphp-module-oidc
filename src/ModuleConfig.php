@@ -76,11 +76,13 @@ class ModuleConfig
     final public const OPTION_FEDERATION_CACHE_MAX_DURATION_FOR_FETCHED = 'federation_cache_max_duration_for_fetched';
     final public const OPTION_FEDERATION_TRUST_ANCHORS = 'federation_trust_anchors';
     final public const OPTION_FEDERATION_TRUST_MARK_TOKENS = 'federation_trust_mark_tokens';
+    final public const OPTION_FEDERATION_DYNAMIC_TRUST_MARKS = 'federation_dynamic_trust_mark_tokens';
     final public const OPTION_FEDERATION_CACHE_DURATION_FOR_PRODUCED = 'federation_cache_duration_for_produced';
     final public const OPTION_PROTOCOL_CACHE_ADAPTER = 'protocol_cache_adapter';
     final public const OPTION_PROTOCOL_CACHE_ADAPTER_ARGUMENTS = 'protocol_cache_adapter_arguments';
     final public const OPTION_PROTOCOL_USER_ENTITY_CACHE_DURATION = 'protocol_user_entity_cache_duration';
     final public const OPTION_PROTOCOL_CLIENT_ENTITY_CACHE_DURATION = 'protocol_client_entity_cache_duration';
+    final public const OPTION_PROTOCOL_DISCOVERY_SHOW_CLAIMS_SUPPORTED = 'protocol_discover_show_claims_supported';
     final public const OPTION_FEDERATION_PARTICIPATION_LIMIT_BY_TRUST_MARKS =
     'federation_participation_limit_by_trust_marks';
 
@@ -504,6 +506,14 @@ class ModuleConfig
         );
     }
 
+    public function getProtocolDiscoveryShowClaimsSupported(): bool
+    {
+        return $this->config()->getOptionalBoolean(
+            self::OPTION_PROTOCOL_DISCOVERY_SHOW_CLAIMS_SUPPORTED,
+            false,
+        );
+    }
+
 
     /*****************************************************************************************************************
      * OpenID Federation related config.
@@ -621,6 +631,16 @@ class ModuleConfig
         );
 
         return empty($trustMarks) ? null : $trustMarks;
+    }
+
+    public function getFederationDynamicTrustMarks(): ?array
+    {
+        $dynamicTrustMarks = $this->config()->getOptionalArray(
+            self::OPTION_FEDERATION_DYNAMIC_TRUST_MARKS,
+            null,
+        );
+
+        return empty($dynamicTrustMarks) ? null : $dynamicTrustMarks;
     }
 
     public function getOrganizationName(): ?string
